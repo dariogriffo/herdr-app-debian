@@ -26,6 +26,15 @@ get_herdr_app_release() {
     esac
 }
 
+# The oldest herdr-core this release works with (it refuses older cores), from
+# upstream's source at the release tag; it becomes a versioned Depends
+CORE_MIN=$(wget -qO- "https://raw.githubusercontent.com/herdrdev/herdr-app/v${herdr_app_VERSION}/distribution/core-version" | tr -d '[:space:]')
+if ! [[ "$CORE_MIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "❌ Could not read distribution/core-version for v${herdr_app_VERSION} (got '$CORE_MIN')"
+    exit 1
+fi
+echo "herdr-app $herdr_app_VERSION needs herdr-core >= $CORE_MIN"
+
 # Function to build for a specific architecture
 build_architecture() {
     local build_arch=$1
@@ -76,7 +85,8 @@ build_architecture() {
         --build-arg BUILD_VERSION="$BUILD_VERSION" \
         --build-arg FULL_VERSION="$FULL_VERSION" \
         --build-arg ARCH="$build_arch" \
-        --build-arg HERDR_APP_RELEASE="$herdr_app_release"; then
+        --build-arg HERDR_APP_RELEASE="$herdr_app_release" \
+        --build-arg CORE_MIN="$CORE_MIN"; then
         echo "❌ Failed to build Docker image for $build_arch"
         return 1
     fi

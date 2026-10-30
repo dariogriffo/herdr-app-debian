@@ -15,9 +15,9 @@ space has tabs, and tabs split into panes holding terminals or mod panels.
 The agents sidebar brings the coding agents from every space into one list and
 shows which are working, blocked waiting for you, or done.
 
-Closing the window leaves the terminals running. They run in herdr-core
-(`hc`), which this package does not include: the first time Herdr opens it
-offers to install herdr-core into `~/.local/bin`, and it keeps it updated.
+Closing the window leaves the terminals running. They run in herdr-core,
+which apt installs with this package (the `herdr-core` package) and keeps
+updated with it.
 Add SSH machines from Settings, Machines, and a space's terminals run on that
 machine, still running when your laptop sleeps.
 

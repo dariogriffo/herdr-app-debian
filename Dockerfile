@@ -5,6 +5,7 @@ ARG BUILD_VERSION
 ARG FULL_VERSION
 ARG ARCH
 ARG HERDR_APP_RELEASE
+ARG CORE_MIN
 
 RUN mkdir -p /output/DEBIAN /output/usr/bin /output/usr/share/doc/herdr-app \
     /output/usr/share/applications /output/usr/share/icons/hicolor/scalable/apps
@@ -31,5 +32,6 @@ RUN sed -i "s/FULL_VERSION/$FULL_VERSION/" /output/usr/share/doc/herdr-app/chang
 RUN sed -i "s/herdr_app_VERSION/$herdr_app_VERSION/" /output/DEBIAN/control
 RUN sed -i "s/BUILD_VERSION/$BUILD_VERSION/" /output/DEBIAN/control
 RUN sed -i "s/SUPPORTED_ARCHITECTURES/$ARCH/" /output/DEBIAN/control
+RUN sed -i "s/CORE_MIN/$CORE_MIN/" /output/DEBIAN/control
 
 RUN dpkg-deb -Zxz --build /output /herdr-app_${FULL_VERSION}.deb

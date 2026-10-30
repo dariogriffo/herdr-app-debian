@@ -1,6 +1,8 @@
 #!/usr/bin/make -f
 DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 HERDR_APP_VERSION := $(shell dpkg-parsechangelog -S Version | sed 's/[-~].*//')
+# The oldest herdr-core this herdr-app works with, from upstream's source
+CORE_MIN := $(shell cat distribution/core-version)
 
 ifeq ($(DEB_HOST_ARCH),arm64)
 HERDR_APP_RELEASE := herdr-app-linux-aarch64
@@ -37,6 +39,9 @@ override_dh_auto_test:
 
 override_dh_auto_clean:
 	rm -rf herdr-app-linux-x86_64 herdr-app-linux-aarch64 herdr-app-linux-*.tar.gz || true
+
+override_dh_gencontrol:
+	dh_gencontrol -- -Vherdr-app:Depends="herdr-core (>= $(CORE_MIN))"
 
 # Prebuilt upstream binary: keep it as shipped
 override_dh_strip:

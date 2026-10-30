@@ -44,7 +44,7 @@ GitHub repository has tags but no release assets): the `herdr-app` binary in
 `/usr/bin`, its icon, a desktop entry matching the one upstream's installer
 writes, and the license and third-party notices. The dependencies are declared
 so they resolve on every supported suite, including `curl` and `xdg-utils`,
-which Herdr calls to install herdr-core and to open links. A Vulkan driver
+which Herdr calls to check for herdr-core releases and to open links. A Vulkan driver
 (`mesa-vulkan-drivers`), a sound player for the alert sounds (`paplay` or
 `pw-play`) and `openssh-client` are recommended.
 
@@ -52,10 +52,15 @@ The binary is installed without its icon beside it, which is how Herdr tells
 an installer-managed copy from any other: its self-updater stays off and
 updates come through apt.
 
-Terminals run in herdr-core (`hc`), which is a separate project and not part
-of this package. The first time Herdr opens, it offers to install herdr-core
-into `~/.local/bin` (with upstream's own installer) and keeps it updated from
-then on.
+Terminals run in herdr-core, a separate upstream project packaged as
+[herdr-core](https://github.com/dariogriffo/herdr-core-debian). `herdr-app`
+depends on it, versioned with the oldest core the release accepts (upstream's
+`distribution/core-version`, read at build time), so apt always installs a
+core this Herdr can use and keeps both updated. Herdr may still offer an
+"update herdr-core" button when upstream is ahead of the mirror; it cannot
+replace `/usr/bin/herdr-core`, so wait for `sudo apt upgrade`. If you let an
+earlier Herdr install a core into `~/.local/bin`, delete
+`~/.local/bin/herdr-core` and `~/.local/bin/hc` so the packaged one is used.
 
 This is an unofficial community project to provide a package that's easy to
 install on Debian. If you're looking for the Herdr source code, see
