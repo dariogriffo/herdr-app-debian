@@ -1,0 +1,97 @@
+name: Build herdr-app for Debian
+
+on:
+  workflow_dispatch:
+    inputs:
+      herdr_app_version:
+        description: The version of herdr-app to build (without the leading v).
+        type: string
+        required: true
+      build_version:
+        description: The build version.
+        type: string
+        required: true
+      architecture:
+        description: Architecture to build (amd64, arm64, or 'all' for all architectures)
+        type: choice
+        default: 'all'
+        options:
+          - 'all'
+          - 'amd64'
+          - 'arm64'
+
+permissions:
+  contents: write
+
+jobs:
+  build-herdr-app:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout herdr-app-debian
+        uses: actions/checkout@v4
+
+      - name: Validate upstream license permits paid distribution
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./validate_license.sh ${{ inputs.herdr_app_version }}
+
+      - name: Build herdr-app
+        run: ./build.sh ${{ inputs.herdr_app_version }} ${{ inputs.build_version }} ${{ inputs.architecture }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: herdr-app_*.deb
+
+  build-src:
+    name: Build Source Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout herdr-app-debian
+        uses: actions/checkout@v4
+
+      - name: Install dpkg-dev and tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends dpkg-dev devscripts wget ca-certificates
+
+      - name: Build source packages
+        run: ./build_src.sh ${{ inputs.herdr_app_version }} ${{ inputs.build_version }}
+
+      - name: Upload source artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-artifact
+          path: |
+            herdr-app_*.dsc
+            herdr-app_*.orig.tar.gz
+            herdr-app_*.debian.tar.xz
+
+  release-herdr-app:
+    name: Release herdr-app for Debian
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [build-herdr-app, build-src]
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact
+
+      - name: Download Source Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: source-artifact
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          files: |
+            herdr-app_*.deb
+            herdr-app_*.dsc
+            herdr-app_*.orig.tar.gz
+            herdr-app_*.debian.tar.xz
+          name: ${{ inputs.herdr_app_version }}+${{ inputs.build_version }}
+          tag_name: ${{ inputs.herdr_app_version }}+${{ inputs.build_version }}
+          fail_on_unmatched_files: true

@@ -1,0 +1,46 @@
+#!/usr/bin/make -f
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+HERDR_APP_VERSION := $(shell dpkg-parsechangelog -S Version | sed 's/[-~].*//')
+
+ifeq ($(DEB_HOST_ARCH),arm64)
+HERDR_APP_RELEASE := herdr-app-linux-aarch64
+else
+HERDR_APP_RELEASE := herdr-app-linux-x86_64
+endif
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+
+override_dh_auto_build:
+	@case "$(DEB_HOST_ARCH)" in \
+		amd64|arm64) ;; \
+		*) echo "Unsupported architecture: $(DEB_HOST_ARCH)"; exit 1 ;; \
+	esac; \
+	echo "Downloading $(HERDR_APP_RELEASE).tar.gz..."; \
+	wget -q "https://releases.herdr.dev/app/$(HERDR_APP_VERSION)/$(HERDR_APP_RELEASE).tar.gz"; \
+	mkdir -p "$(HERDR_APP_RELEASE)"; \
+	tar -xzf "$(HERDR_APP_RELEASE).tar.gz" -C "$(HERDR_APP_RELEASE)" --strip-components=1; \
+	rm -f "$(HERDR_APP_RELEASE).tar.gz"; \
+	[ -f "$(HERDR_APP_RELEASE)/herdr-app" ] || { echo "Unexpected tarball layout: $(HERDR_APP_RELEASE)/herdr-app not found"; exit 1; }
+
+# The binary goes alone into /usr/bin: herdr-app updates itself only when its
+# icon sits next to it, so apt stays in charge of updates.
+override_dh_auto_install:
+	install -D -m 755 "$(HERDR_APP_RELEASE)/herdr-app" debian/herdr-app/usr/bin/herdr-app
+	install -D -m 644 "$(HERDR_APP_RELEASE)/herdr-app.svg" debian/herdr-app/usr/share/icons/hicolor/scalable/apps/herdr-app.svg
+	install -D -m 644 debian/herdr-app.desktop debian/herdr-app/usr/share/applications/herdr-app.desktop
+	install -D -m 644 "$(HERDR_APP_RELEASE)/THIRD-PARTY-NOTICES" debian/herdr-app/usr/share/doc/herdr-app/THIRD-PARTY-NOTICES
+
+override_dh_auto_test:
+
+override_dh_auto_clean:
+	rm -rf herdr-app-linux-x86_64 herdr-app-linux-aarch64 herdr-app-linux-*.tar.gz || true
+
+# Prebuilt upstream binary: keep it as shipped
+override_dh_strip:
+
+override_dh_dwz:
+
+override_dh_shlibdeps:

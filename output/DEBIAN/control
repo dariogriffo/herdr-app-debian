@@ -1,0 +1,21 @@
+Section: devel
+Priority: optional
+Maintainer: Dario Griffo <dariogriffo@gmail.com>
+Homepage: https://herdr.dev
+Package: herdr-app
+Version: herdr_app_VERSION-BUILD_VERSION~griffo
+Architecture: SUPPORTED_ARCHITECTURES
+Depends: libc6 (>= 2.35), libgcc-s1, libxcb1, libxkbcommon0, libxkbcommon-x11-0, libfontconfig1, libvulkan1, libegl1, libwayland-client0, libwayland-egl1, curl, xdg-utils
+Recommends: mesa-vulkan-drivers, pulseaudio-utils | pipewire-bin, openssh-client
+Description: desktop app for terminals and coding agents
+ Herdr keeps terminal work in spaces, usually one per repository, each with
+ tabs split into panes. An agents sidebar gathers the coding agents running
+ in every space and shows which are working, blocked waiting for you, or
+ done. Closing the window leaves the terminals running, and SSH machines can
+ be added so a space runs its terminals on another computer.
+ .
+ The command is herdr-app. Terminals run in herdr-core (hc), which is not
+ part of this package: Herdr offers to install it into ~/.local/bin the
+ first time it opens, and keeps it updated. Herdr needs a desktop session
+ (X11 or Wayland) and a working Vulkan driver. Its own self-updater is off in
+ this package; updates come through apt.
